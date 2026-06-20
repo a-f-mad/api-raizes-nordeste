@@ -13,14 +13,26 @@ Interface de programação de aplicativos (API) desenvolvida como solução back
 
 ## Como Executar o Ambiente Local
 
-1. Instalar as dependências:
-   Certifique-se de que seu ambiente virtual (.venv) está ativo e execute:
+1. Clonar o repositório:
+   git clone https://github.com/a-f-mad/api-raizes-nordeste.git
+   cd api-raizes-nordeste
+
+2. Criar o ambiente virtual (venv):
+   python -m venv .venv
+
+3. Ativar o ambiente virtual:
+   * No Windows (Prompt de Comando ou PowerShell):
+     .venv\Scripts\activate
+   * No Linux / macOS:
+     source .venv/bin/activate
+
+4. Instalar as dependências do projeto:
    pip install -r requirements.txt
 
-2. Iniciar o servidor de desenvolvimento:
+5. Iniciar o servidor de desenvolvimento:
    python main.py
 
-3. Acessar a documentação:
+6. Acessar a documentação:
    Com o servidor rodando, abra o navegador e acesse a interface interativa do Swagger UI:
    http://127.0.0.1:8000/docs
 
