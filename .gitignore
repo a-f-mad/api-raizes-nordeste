@@ -1,0 +1,14 @@
+# Ambiente virtual local
+.venv/
+venv/
+env/
+
+# Cache do Python
+__pycache__/
+*.pyc
+
+# Banco de dados local de teste
+raizes_nordeste.db
+
+# Pastas de editores de código
+.vscode/
