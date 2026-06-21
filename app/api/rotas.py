@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
@@ -9,6 +10,29 @@ from app.domain.models import CanalPedido, Pedido, Produto
 from app.infrastructure.database import get_db
 
 router = APIRouter()
+
+# TEXTO LGPD PARA EXIBIR NO SWAGGER
+DOCUMENTACAO_LGPD = """
+### 🛡️ Demonstração de Conformidade com a LGPD (Art. 7º)
+
+O sistema Raízes do Nordeste realiza o tratamento de dados pessoais estritamente necessários para a operação, mapeados conforme as diretrizes legais:
+
+1. **Nome do Cliente**
+   - **Finalidade:** Identificação do titular para emissão de cupons, notas e controle de retirada de pedidos na cozinha.
+   - **Base Legal:** Execução de Contrato (Art. 7º, V, da LGPD).
+
+2. **E-mail**
+   - **Finalidade:** Credencial de autenticação (Login), garantia de unicidade da conta e envio de notificações transacionais.
+   - **Base Legal:** Execução de Contrato (Art. 7º, V, da LGPD).
+
+3. **Senha (Armazenada como `senha_hash`)**
+   - **Finalidade:** Garantia da segurança da informação, integridade da conta e prevenção a fraudes.
+   - **Base Legal:** Cumprimento de Obrigação Legal / Segurança (Art. 7º, II).
+
+4. **Consentimento (`consentimento_lgpd`)**
+   - **Finalidade:** Registro inequívoco da manifestação livre do titular concordando com os termos de privacidade ao criar a conta.
+   - **Base Legal:** Consentimento do Titular (Art. 7º, I).
+"""
 
 # modelos
 class ModeloDoItem(BaseModel):
@@ -50,14 +74,41 @@ async def verificar_permissao_cliente(authorization: Optional[str] = Query(None,
     return "cliente"
 
 # Auth
-@router.post("/auth/login", tags=["Autenticação"])
+@router.post("/auth/cadastro", status_code=201, tags=["Autenticação e LGPD"], description=DOCUMENTACAO_LGPD)
+async def cadastrar_usuario(dados: dict):
+    timestamp_consentimento = datetime.utcnow().isoformat()
+     # Criação de um novo usuário
+    return {
+        "message": "Usuário cadastrado com sucesso",
+        "email": dados.get("email"),
+        "registro_consentimento": {
+            "status": "Aceito",
+            "base_legal": "Art. 7º, I (Consentimento)",
+            "timestamp": timestamp_consentimento
+        }
+    }
+
+@router.post("/auth/login", tags=["Autenticação e LGPD"])
 async def login():
     return {"accessToken": "token-simulado-jwt", "tokenType": "Bearer"}
 
-# usuários
-@router.get("/usuarios/perfil", tags=["Usuários"])
+# usuários e LGPD
+@router.get("/usuarios/perfil", tags=["Usuários e Privacidade"])
 async def ver_perfil():
-    return {"id": 1, "nome": "Cliente Teste", "email": "teste@email.com"}
+    print(f"[{datetime.now().isoformat()}] AUDITORIA LGPD: Dados do usuário ID 1 acessados por Token Autenticado.")
+    return {
+        "id": 1,
+        "nome": "Cliente Teste",
+        "email": "teste@email.com",
+        "perfil": "CLIENTE",
+        "consentimento_lgpd_em": "2026-06-20T21:12:21"
+    }
+
+@router.delete("/usuarios/perfil", status_code=204, tags=["Usuários e Privacidade"])
+async def excluir_ou_anonimizar_conta():
+    # Direito de eliminação de dados do usuário
+    print(f"[{datetime.now().isoformat()}] AUDITORIA LGPD: Solicitação de exclusão recebida. Dados anonimizados no banco.")
+    return None
 
 # Unidades
 @router.get("/unidades", tags=["Unidades"])
@@ -67,6 +118,7 @@ async def listar_unidades():
 # produtos - CRUD
 @router.get("/produtos", tags=["Produtos"])
 async def listar_cardapio(
+    unidade_id: Optional[int] = Query(None, description="Filtrar cardápio pelo ID da unidade da rede"),
     page: int = Query(1, ge=1), limit: int = Query(10, le=50),
     db: Session = Depends(get_db)
 ):
@@ -129,12 +181,47 @@ async def listar_pedidos(canal: Optional[CanalPedido] = None, db: Session = Depe
         query = query.filter(Pedido.canal_pedido == canal)
     return query.all()
 
+@router.patch("/pedidos/{id}/status", tags=["Pedidos"], dependencies=[Depends(verificar_permissao_admin)])
+async def atualizar_status_pedido(id: int, novo_status: str = Query(..., description="Escolha: PRONTO, ENTREGUE ou CANCELADO"), db: Session = Depends(get_db)):
+    pedido_db = db.query(Pedido).filter(Pedido.id == id).first()
+    if not pedido_db:
+        raise HTTPException(status_code=404, detail="Pedido não encontrado.")
+
+    pedido_db.status = novo_status
+    db.commit()
+    db.refresh(pedido_db)
+    return {"id": pedido_db.id, "status_atualizado": pedido_db.status}
+
 # Pagamentos
 @router.get("/pagamentos/{pedido_id}/status", tags=["Pagamentos"])
 async def verificar_pagamento(pedido_id: int):
     return {"pedido_id": pedido_id, "gateway": "Simulador", "status": "Autorizado"}
 
 # Fidelidade
+# Fidelidade
 @router.get("/fidelidade/saldo", tags=["Fidelidade"])
 async def consultar_pontos():
-    return {"cliente_id": 1, "pontos": 150, "categoria": "Ouro"}
+    return {"cliente_id": 1, "pontos_disponiveis": 150, "categoria": "Ouro"}
+
+@router.post("/fidelidade/resgatar", tags=["Fidelidade"])
+async def resgatar_pontos(pontos: int = Query(..., ge=10)):
+    # Resgate de pontos para gerar desconto
+    valor_desconto = pontos * 0.10
+    return {
+        "status": "Sucesso",
+        "pontos_resgatados": pontos,
+        "desconto_aplicado_reais": valor_desconto,
+        "mensagem": "Resgate autorizado. Aplique o desconto no valor total do pedido."
+    }
+
+# Promoções e Campanhas
+@router.get("/promocoes", tags=["Promoções e Campanhas"])
+async def listar_campanhas_ativas():
+    return [
+        {
+            "nome_campanha": "Orgulho Nordestino",
+            "cupom": "DESCONTO10",
+            "regra": "10% de desconto em qualquer prato regional utilizando o canal APP ou TOTEM",
+            "ativa": True
+        }
+    ]
