@@ -52,6 +52,7 @@ class ProdutoBase(BaseModel):
     descricao: str
     preco: float
     estoque_disponivel: int
+    unidade_id: Optional[int] = Field(1, description="ID da unidade da rede")
 
 # para simular a validação
 async def verificar_permissao_admin(authorization: Optional[str] = Query(None, description="Digite: Bearer TOKEN_ADMIN")):

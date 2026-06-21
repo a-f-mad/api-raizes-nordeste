@@ -54,9 +54,9 @@ def popular_banco_automaticamente():
         if db.query(Produto).count() == 0:
             print("Populando banco de dados com itens do cardápio...")
             itens_iniciais = [
-                Produto(id=1, nome="Tapioca de Carne de Sol", descricao="Regional", preco=25.50, estoque_disponivel=10),
-                Produto(id=2, nome="Suco de Caju", descricao="Natural 500ml", preco=12.00, estoque_disponivel=50),
-                Produto(id=3, nome="Cuscuz Completo", descricao="Com ovo e queijo", preco=18.90, estoque_disponivel=5)
+                Produto(nome="Tapioca de Carne de Sol", descricao="Regional", preco=25.50, estoque_disponivel=10, unidade_id=1),
+                Produto(nome="Suco de Caju", descricao="Natural 500ml", preco=12.00, estoque_disponivel=50, unidade_id=1),
+                Produto(nome="Cuscuz Completo", descricao="Com ovo e queijo", preco=18.90, estoque_disponivel=5, unidade_id=1)
             ]
             db.add_all(itens_iniciais)
             db.commit()

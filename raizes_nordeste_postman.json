@@ -1,0 +1,155 @@
+{
+	"info": {
+		"name": "API da Raízes do Nordeste",
+		"description": "Coleção de testes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth & LGPD",
+			"item": [
+				{
+					"name": "T01 - Login válido",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"adelino@email.com\",\n  \"senha\": \"123456\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/auth/login" }
+					}
+				},
+				{
+					"name": "T02 - Acesso sem token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/usuarios/perfil" }
+					}
+				},
+				{
+					"name": "T04 - Campo obrigatório ausente",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Adelino Madureira\"\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/auth/cadastro" }
+					}
+				}
+			]
+		},
+		{
+			"name": "Produtos",
+			"item": [
+				{
+					"name": "T03 - Criar sem permissao (403)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer TOKEN_CLIENTE_COMUM" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Novo Prato\",\n  \"preco\": 25.0,\n  \"estoque_disponivel\": 10\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/produtos" }
+					}
+				},
+				{
+					"name": "T06 - Listar por unidade",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/v1/produtos?unidade_id=1&page=1&limit=10"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Pedidos & Regras",
+			"item": [
+				{
+					"name": "T05 - Validação quantidade negativa",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer TOKEN_CLIENTE" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cliente_id\": 1,\n  \"canal_pedido\": \"APP\",\n  \"valor_total\": 15.0,\n  \"itens\": [\n    { \"produto_id\": 1, \"quantidade\": -5, \"preco_unitario\": 15.0 }\n  ]\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/pedidos" }
+					}
+				},
+				{
+					"name": "T07 - Criar com sucesso",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer TOKEN_CLIENTE" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cliente_id\": 1,\n  \"canal_pedido\": \"APP\",\n  \"valor_total\": 30.0,\n  \"itens\": [\n    { \"produto_id\": 1, \"quantidade\": 2, \"preco_unitario\": 15.0 }\n  ]\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/pedidos" }
+					}
+				},
+				{
+					"name": "T08 - Produto inexistente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer TOKEN_CLIENTE" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cliente_id\": 1,\n  \"canal_pedido\": \"APP\",\n  \"valor_total\": 15.0,\n  \"itens\": [\n    { \"produto_id\": 999, \"quantidade\": 1, \"preco_unitario\": 15.0 }\n  ]\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/pedidos" }
+					}
+				},
+				{
+					"name": "T09 - Estoque insuficiente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer TOKEN_CLIENTE" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cliente_id\": 1,\n  \"canal_pedido\": \"APP\",\n  \"valor_total\": 1485.0,\n  \"itens\": [\n    { \"produto_id\": 1, \"quantidade\": 99, \"preco_unitario\": 15.0 }\n  ]\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/pedidos" }
+					}
+				},
+				{
+					"name": "T10 - Atualizar status admin",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer TOKEN_ADMIN" }
+						],
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/v1/pedidos/1/status?novo_status=PRONTO"
+						}
+					}
+				}
+			]
+		}
+	]
+}

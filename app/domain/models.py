@@ -35,6 +35,7 @@ class Produto(Base):
     descricao = Column(String(255))
     preco = Column(Float, nullable=False)
     estoque_disponivel = Column(Integer, default=0)
+    unidade_id = Column(Integer, default=1)
 
 # Entidade Pedido
 class Pedido(Base):
@@ -58,7 +59,7 @@ class ItemPedido(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     pedido_id = Column(Integer, ForeignKey("pedidos.id"))
-    produto_id = Column(Integer)
+    produto_id = Column(Integer, ForeignKey("produtos.id"))
     quantidade = Column(Integer, nullable=False)
     preco_unitario = Column(Float, nullable=False)
 
