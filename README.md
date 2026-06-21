@@ -149,3 +149,60 @@ Para testar a segurança e as regras de negócio diretamente pela interface do S
 
 - Perfil Cliente: Bearer TOKEN_CLIENTE (Permite realizar pedidos)
 - Perfil Administrador: Bearer TOKEN_ADMIN (Permite gerenciar produtos no CRUD)
+
+## Contrato da API e Especificação de Endpoints
+
+Esta seção detalha o contrato técnico entre as camadas do sistema, mapeando as rotas, os requisitos de autenticação por perfil, as estruturas de entrada/saída e as respostas esperadas.
+
+### Recurso: Autenticação & Usuários (`/api/v1/auth`)
+
+| Parâmetro Técnico | Detalhamento do Endpoint |
+| :--- | :--- |
+| **Descrição** | Simulação de validação de credenciais e escopo de acesso. |
+| **Rota e Método** | `POST /api/v1/auth/login` |
+| **Autenticação** | Pública (Sem Token) |
+| **Request Body (JSON)** | `{"email": "cliente@email.com", "senha": "123"}` |
+| **Response Sucesso (200 OK)** | `{"token": "Bearer TOKEN_CLIENTE", "perfil": "CLIENTE"}` |
+| **Status Codes Possíveis** | `200` (Sucesso), `401` (Invalido), `422` (Contrato Errado) |
+
+---
+
+### Recurso: Cardápio e Produtos (`/api/v1/produtos`)
+
+| Parâmetro Técnico | Detalhamento do Endpoint |
+| :--- | :--- |
+| **Descrição** | Listagem dinâmica dos itens ativos do cardápio filtrados por filial da rede. |
+| **Rota e Método** | `GET /api/v1/produtos` |
+| **Autenticação** | Obrigatória: `Bearer TOKEN_CLIENTE` ou `Bearer TOKEN_ADMIN` |
+| **Query Params** | `?unidade_id=1` (Obrigatório para o filtro de localidade) |
+| **Response Sucesso (200 OK)** | `[{"id": 1, "nome": "Baião de Dois", "preco": 35.0, "estoque_disponivel": 15}]` |
+| **Status Codes Possíveis** | `200` (Sucesso), `401` (Não Autenticado), `404` (Unidade Não Encontrada) |
+
+---
+
+### Recurso: Pedidos & Regras de Negócio (`/api/v1/pedidos`)
+
+| Parâmetro Técnico | Detalhamento do Endpoint |
+| :--- | :--- |
+| **Descrição** | Processamento transacional de compras, checagem de estoque e multicanalidade. |
+| **Rota e Método** | `POST /api/v1/pedidos` |
+| **Autenticação** | Restrita: Apenas perfil `CLIENTE` (`Bearer TOKEN_CLIENTE`) |
+| **Request Body (JSON)** | `{"canal_pedido": "APP", "itens": [{"produto_id": 1, "quantidade": 2}]}` |
+| **Response Sucesso (201 Created)**| `{"id": 12, "status": "COZINHA", "valor_total": 70.0, "timestamp": "2026-06-21T14:45:00"}` |
+| **Status Codes Possíveis** | `201` (Criado), `401` (Token Inválido), `403` (Perfil Admin Proibido), `409` (Conflito/Estoque Insuficiente), `422` (Canal de Venda Inválido) |
+
+---
+
+### Padrão Global de Resposta de Erros
+
+Para qualquer falha interceptada pelas regras de negócio ou validações do Pydantic, a API interrompe o fluxo e responde utilizando estritamente a estrutura JSON unificada abaixo, garantindo rastreabilidade:
+
+```json
+{
+  "error": "NOME_DO_ERRO_HTTP",
+  "message": "Mensagem descritiva detalhada para exibição na interface.",
+  "details": "Especificação técnica do erro ou campo que falhou no contrato.",
+  "timestamp": "2026-06-21T14:45:24.123Z",
+  "path": "/api/v1/pedidos"
+}
+```
