@@ -39,6 +39,9 @@ Interface de programação de aplicativos (API) desenvolvida como solução back
     ```
 
 5. Iniciar o servidor de desenvolvimento:
+
+   Copie o arquivo .env.example para .env se quiser customizar o servidor
+
     ```
    python main.py
     ```
@@ -47,6 +50,16 @@ Interface de programação de aplicativos (API) desenvolvida como solução back
    Com o servidor rodando, abra o navegador e acesse a interface interativa do Swagger UI:
 
    http://127.0.0.1:8000/docs
+
+## Testes Postman
+
+O repositório inclui o arquivo `raizes_nordeste_postman.json` contendo 10 cenários.
+
+**Ordem sugerida para execução:**
+1. Execute `T06` para validar a listagem inicial populada pelo Seed automático.
+2. Execute `T01`, `T02` e `T03` para checar as barreiras e roles de segurança/LGPD.
+3. Execute `T07` para simular a compra com integração de pagamento aprovado.
+4. Rode os testes negativos (`T04`, `T05`, `T08`, `T09`) para comprovar o tratamento erros
 
 ## Credenciais de Teste
 
