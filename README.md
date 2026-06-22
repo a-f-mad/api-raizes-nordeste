@@ -1,4 +1,6 @@
 # Sistema Raízes do Nordeste - API Back-end
+* **Identificação do Estudante:** RU 4654235
+* **Curso:** Análise e Desenvolvimento de Sistemas (UNINTER)
 
 Interface de programação de aplicativos (API) desenvolvida como solução back-end para o sistema Raízes do Nordeste, estruturada com base nas melhores práticas de arquitetura de software e design RESTful.
 
