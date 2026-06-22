@@ -132,16 +132,39 @@ O tratamento de dados pessoais no sistema foi mapeado em total conformidade com 
 
    http://127.0.0.1:8000/docs
 
-## Testes Postman
+## Plano de Testes Detalhado
 
-O repositório inclui o arquivo `raizes_nordeste_postman.json` contendo 10 cenários.
+Como evidência de validação da API, o repositório inclui o arquivo oficial `raizes_nordeste_postman.json` estruturado em pastas (Auth, Produtos, Pedidos, Erros). Abaixo está a especificação detalhada de cada cenário para reprodutibilidade pelo avaliador, contendo 6 fluxos positivos e 4 negativos.
 
-**Ordem sugerida para execução:**
+### Cenários Positivos (Fluxo Esperado)
 
-1. Execute `T06` para validar a listagem inicial populada pelo Seed automático.
-2. Execute `T01`, `T02` e `T03` para checar as barreiras e roles de segurança/LGPD.
-3. Execute `T07` para simular a compra com integração de pagamento aprovado.
-4. Rode os testes negativos (`T04`, `T05`, `T08`, `T09`) para comprovar o tratamento erros
+| ID | Nome da Requisição / Evidência | Endpoint + Método | Pré-condição | Entrada (Path/Query/Body) | Saída Esperada (Status + Response) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **T01** | `T01 - Autenticar Cliente` | `POST /api/v1/auth/login` | Nenhuma (Rota Pública) | **Body:** `{"email": "cliente@email.com", "senha": "123"}` | **200 OK** <br> `{"token": "Bearer TOKEN_CLIENTE", "perfil": "CLIENTE"}` |
+| **T02** | `T02 - Autenticar Admin` | `POST /api/v1/auth/login` | Nenhuma (Rota Pública) | **Body:** `{"email": "admin@email.com", "senha": "xyz"}` | **200 OK** <br> `{"token": "Bearer TOKEN_ADMIN", "perfil": "ADMIN"}` |
+| **T03** | `T03 - Obter Perfil Próprio` | `GET /api/v1/auth/perfil` | Usuário Autenticado | **Header:** `Authorization: Bearer TOKEN_CLIENTE` | **200 OK** <br> `{"email": "cliente@email.com", "consentimento_lgpd": "..."}` |
+| **T06** | `T06 - Listar por Unidade` | `GET /api/v1/produtos` | Banco de dados populado via Seed automático | **Query:** `?unidade_id=1` | **200 OK** <br> `[{"id": 1, "nome": "Baião de Dois", "preco": 35.0, ...}]` |
+| **T07** | `T07 - Criar Pedido Sucesso` | `POST /api/v1/pedidos` | Token de Cliente ativo e estoque disponível | **Header:** `Authorization: Bearer TOKEN_CLIENTE`<br>**Body:** `{"canal_pedido": "APP", "itens": [{"produto_id": 1, "quantidade": 2}]}` | **201 Created** <br> `{"id": 101, "status": "COZINHA", "valor_total": 70.0}` |
+| **T10** | `T10 - Alterar Status Pedido`| `PATCH /api/v1/pedidos/{id}` | Pedido existente criado previamente no banco | **Path:** `/api/v1/pedidos/101`<br>**Header:** `Authorization: Bearer TOKEN_ADMIN`<br>**Body:** `{"status": "PRONTO"}` | **200 OK** <br> `{"id": 101, "status": "PRONTO", "atualizado_em": "..."}` |
+
+---
+
+### Cenários Negativos
+
+| ID | Nome da Requisição / Evidência | Endpoint + Método | Pré-condição | Entrada (Path/Query/Body) | Saída Esperada (Status + Erro Padronizado) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **T04** | `T04 - Rota Protegida Sem Token`| `GET /api/v1/auth/perfil` | Nenhuma (Tentativa Anônima) | **Header:** Vazio / Sem Token | **401 Unauthorized** <br> `{"error": "UNAUTHORIZED", "message": "Token ausente"}` |
+| **T05** | `T05 - Admin Criando Pedido` | `POST /api/v1/pedidos` | Perfil ADMIN não possui permissão de compra | **Header:** `Authorization: Bearer TOKEN_ADMIN`<br>**Body:** `{"canal_pedido": "WEB", "itens": [...]}` | **403 Forbidden** <br> `{"error": "FORBIDDEN", "message": "Apenas clientes..."}` |
+| **T08** | `T08 - Canal de Venda Inválido`| `POST /api/v1/pedidos` | Token de Cliente ativo | **Header:** `Authorization: Bearer TOKEN_CLIENTE`<br>**Body:** `{"canal_pedido": "TELEFONE", "itens": [...]}` | **422 Unprocessable Entity** <br> `{"error": "VALIDATION_ERROR", "details": "canal_pedido"}` |
+| **T09** | `T09 - Estoque Insuficiente` | `POST /api/v1/pedidos` | Quantidade do item maior que o estoque do Seed | **Header:** `Authorization: Bearer TOKEN_CLIENTE`<br>**Body:** `{"canal_pedido": "TOTEM", "itens": [{"produto_id": 1, "quantidade": 999}]}` | **409 Conflict** <br> `{"error": "STOCK_CONFLICT", "message": "Estoque insuficiente"}` |
+
+---
+
+### Instruções de Execução da Suíte
+
+1. **Configuração Inicial:** Certifique-se de iniciar o servidor localmente com `python main.py` para gerar o arquivo físico do banco SQLite e rodar o Seed automático.
+2. **Importação:** Importe o arquivo `raizes_nordeste_postman.json` no Postman ou Insomnia.
+3. **Ordem Execução:** Siga estritamente a sequência numérica dos IDs (`T01` a `T10`) para garantir que os tokens gerados nos primeiros testes sejam reaproveitados nas rotas autenticadas e que o histórico de pedidos seja criado antes das rotas de alteração de status.
 
 ## Credenciais de Teste
 

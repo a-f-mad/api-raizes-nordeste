@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "API da Raízes do Nordeste",
-		"description": "Coleção de testes",
+		"description": "Coleção oficial de testes",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -9,7 +9,7 @@
 			"name": "Auth & LGPD",
 			"item": [
 				{
-					"name": "T01 - Login válido",
+					"name": "CT02 - Autenticação com credenciais válidas",
 					"request": {
 						"method": "POST",
 						"header": [],
@@ -22,24 +22,13 @@
 					}
 				},
 				{
-					"name": "T02 - Acesso sem token",
+					"name": "CT06 - Exclusão e anonimização de dados (LGPD)",
 					"request": {
-						"method": "GET",
-						"header": [],
+						"method": "DELETE",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer TOKEN_CLIENTE" }
+						],
 						"url": { "raw": "http://127.0.0.1:8000/api/v1/usuarios/perfil" }
-					}
-				},
-				{
-					"name": "T04 - Campo obrigatório ausente",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"nome\": \"Adelino Madureira\"\n}",
-							"options": { "raw": { "language": "json" } }
-						},
-						"url": { "raw": "http://127.0.0.1:8000/api/v1/auth/cadastro" }
 					}
 				}
 			]
@@ -48,28 +37,32 @@
 			"name": "Produtos",
 			"item": [
 				{
-					"name": "T03 - Criar sem permissao (403)",
-					"request": {
-						"method": "POST",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer TOKEN_CLIENTE_COMUM" }
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"nome\": \"Novo Prato\",\n  \"preco\": 25.0,\n  \"estoque_disponivel\": 10\n}",
-							"options": { "raw": { "language": "json" } }
-						},
-						"url": { "raw": "http://127.0.0.1:8000/api/v1/produtos" }
-					}
-				},
-				{
-					"name": "T06 - Listar por unidade",
+					"name": "CT03 - Consulta dinâmica de cardápio por filial",
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": {
-							"raw": "http://127.0.0.1:8000/api/v1/produtos?unidade_id=1&page=1&limit=10"
-						}
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/produtos/1" }
+					}
+				},
+				{
+					"name": "CT07 - Criar produto sem permissão admin (403)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Tapioca de Carne de Sol\",\n  \"descricao\": \"Regional\",\n  \"preco\": 25.5,\n  \"estoque_disponivel\": 5,\n  \"unidade_id\": 1\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/produtos?authorization=Bearer%20TOKEN_CLIENTE" }
+					}
+				},
+				{
+					"name": "CT10 - Consulta de produto inexistente (404)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/produtos/9999" }
 					}
 				}
 			]
@@ -78,75 +71,58 @@
 			"name": "Pedidos & Regras",
 			"item": [
 				{
-					"name": "T05 - Validação quantidade negativa",
+					"name": "CT01 - Cadastro de pedido com sucesso",
 					"request": {
 						"method": "POST",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer TOKEN_CLIENTE" }
-						],
+						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cliente_id\": 1,\n  \"canal_pedido\": \"APP\",\n  \"valor_total\": 15.0,\n  \"itens\": [\n    { \"produto_id\": 1, \"quantidade\": -5, \"preco_unitario\": 15.0 }\n  ]\n}",
+							"raw": "{\n  \"cliente_id\": 1,\n  \"canal_pedido\": \"APP\",\n  \"valor_total\": 70.0,\n  \"itens\": [\n    { \"produto_id\": 1, \"quantidade\": 2, \"preco_unitario\": 35.0 }\n  ]\n}",
 							"options": { "raw": { "language": "json" } }
 						},
-						"url": { "raw": "http://127.0.0.1:8000/api/v1/pedidos" }
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/pedidos?authorization=Bearer%20TOKEN_CLIENTE" }
 					}
 				},
 				{
-					"name": "T07 - Criar com sucesso",
+					"name": "CT04 - Consulta de integration de pagamento Mock",
 					"request": {
-						"method": "POST",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer TOKEN_CLIENTE" }
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"cliente_id\": 1,\n  \"canal_pedido\": \"APP\",\n  \"valor_total\": 30.0,\n  \"itens\": [\n    { \"produto_id\": 1, \"quantidade\": 2, \"preco_unitario\": 15.0 }\n  ]\n}",
-							"options": { "raw": { "language": "json" } }
-						},
-						"url": { "raw": "http://127.0.0.1:8000/api/v1/pedidos" }
+						"method": "GET",
+						"header": [],
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/pagamentos/3/status" }
 					}
 				},
 				{
-					"name": "T08 - Produto inexistente",
+					"name": "CT05 - Filtro de pedidos por canal de origem",
 					"request": {
-						"method": "POST",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer TOKEN_CLIENTE" }
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"cliente_id\": 1,\n  \"canal_pedido\": \"APP\",\n  \"valor_total\": 15.0,\n  \"itens\": [\n    { \"produto_id\": 999, \"quantidade\": 1, \"preco_unitario\": 15.0 }\n  ]\n}",
-							"options": { "raw": { "language": "json" } }
-						},
-						"url": { "raw": "http://127.0.0.1:8000/api/v1/pedidos" }
+						"method": "GET",
+						"header": [],
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/pedidos?canal=APP" }
 					}
 				},
 				{
-					"name": "T09 - Estoque insuficiente",
+					"name": "CT08 - Bloqueio por conflito de estoque insuficiente",
 					"request": {
 						"method": "POST",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer TOKEN_CLIENTE" }
-						],
+						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"cliente_id\": 1,\n  \"canal_pedido\": \"APP\",\n  \"valor_total\": 1485.0,\n  \"itens\": [\n    { \"produto_id\": 1, \"quantidade\": 99, \"preco_unitario\": 15.0 }\n  ]\n}",
+							"raw": "{\n  \"cliente_id\": 1,\n  \"canal_pedido\": \"APP\",\n  \"valor_total\": 70.0,\n  \"itens\": [\n    { \"produto_id\": 1, \"quantidade\": 9999, \"preco_unitario\": 35.0 }\n  ]\n}",
 							"options": { "raw": { "language": "json" } }
 						},
-						"url": { "raw": "http://127.0.0.1:8000/api/v1/pedidos" }
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/pedidos?authorization=Bearer%20TOKEN_CLIENTE" }
 					}
 				},
 				{
-					"name": "T10 - Atualizar status admin",
+					"name": "CT09 - Cadastro de pedido com campo obrigatório ausente",
 					"request": {
-						"method": "PATCH",
-						"header": [
-							{ "key": "Authorization", "value": "Bearer TOKEN_ADMIN" }
-						],
-						"url": {
-							"raw": "http://127.0.0.1:8000/api/v1/pedidos/1/status?novo_status=PRONTO"
-						}
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"cliente_id\": 1,\n  \"valor_total\": 70.0,\n  \"itens\": [\n    { \"produto_id\": 1, \"quantidade\": 2, \"preco_unitario\": 35.0 }\n  ]\n}",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": { "raw": "http://127.0.0.1:8000/api/v1/pedidos?authorization=Bearer%20TOKEN_CLIENTE" }
 					}
 				}
 			]
